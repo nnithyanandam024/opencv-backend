@@ -33,7 +33,7 @@ import urllib.request
 
 MODEL_DIR = "models"
 MODEL_PATH = os.path.join(MODEL_DIR, "yolov8n.onnx")
-MODEL_URL = "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.onnx"
+MODEL_URL = "https://huggingface.co/Gleb/yolov8n-onnx/resolve/main/yolov8n.onnx"
 
 COCO_CLASSES = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
