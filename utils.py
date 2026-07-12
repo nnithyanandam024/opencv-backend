@@ -56,7 +56,11 @@ def download_model_if_needed():
         os.makedirs(MODEL_DIR)
     if not os.path.exists(MODEL_PATH):
         print("Downloading YOLOv8n ONNX model...")
-        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+        import ssl
+        # Bypass SSL check for download if certs are missing in container
+        ctx = ssl._create_unverified_context()
+        with urllib.request.urlopen(MODEL_URL, context=ctx) as response, open(MODEL_PATH, 'wb') as out_file:
+            out_file.write(response.read())
         print("Download complete.")
 
 def get_yolo_net():
