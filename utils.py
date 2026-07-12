@@ -33,7 +33,6 @@ import urllib.request
 
 MODEL_DIR = "models"
 MODEL_PATH = os.path.join(MODEL_DIR, "yolov8n.onnx")
-MODEL_URL = "https://github.com/triple-Mu/YOLOv8-TensorRT/releases/download/v1.0.1/yolov8n.onnx"
 
 COCO_CLASSES = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
@@ -51,27 +50,11 @@ COCO_CLASSES = [
 
 _yolo_net = None
 
-def download_model_if_needed():
-    if not os.path.exists(MODEL_DIR):
-        os.makedirs(MODEL_DIR)
-    if not os.path.exists(MODEL_PATH):
-        print("Downloading YOLOv8n ONNX model...")
-        import ssl
-        # Bypass SSL check for download if certs are missing in container
-        ctx = ssl._create_unverified_context()
-        # Set a browser User-Agent to bypass Hugging Face bot protection (which throws 401/403 on standard python urllib headers)
-        req = urllib.request.Request(
-            MODEL_URL,
-            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-        )
-        with urllib.request.urlopen(req, context=ctx) as response, open(MODEL_PATH, 'wb') as out_file:
-            out_file.write(response.read())
-        print("Download complete.")
-
 def get_yolo_net():
     global _yolo_net
     if _yolo_net is None:
-        download_model_if_needed()
+        if not os.path.exists(MODEL_PATH):
+            raise FileNotFoundError(f"YOLOv8n ONNX model not found at {MODEL_PATH}")
         _yolo_net = cv2.dnn.readNetFromONNX(MODEL_PATH)
     return _yolo_net
 
