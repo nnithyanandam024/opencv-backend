@@ -11,28 +11,9 @@ import numpy as np
 import base64
 import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from utils import decode_image, encode_image
+from utils import decode_image, encode_image, run_yolo_inference
 
 router = APIRouter()
-
-# Cache YOLO model so it isn't reloaded every frame
-_yolo_model = None
-
-# Check if ultralytics is available
-try:
-    import ultralytics as _ult  # noqa: F401
-    YOLO_AVAILABLE = True
-except ImportError:
-    YOLO_AVAILABLE = False
-
-
-def get_yolo():
-    global _yolo_model
-    if _yolo_model is None:
-        from ultralytics import YOLO
-        _yolo_model = YOLO("yolov8n.pt")
-    return _yolo_model
-
 
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -80,17 +61,10 @@ def process_frame(img: np.ndarray, module: str, params: dict) -> np.ndarray:
         return img
 
     elif module == "detect":
-        if not YOLO_AVAILABLE:
-            cv2.putText(img, "ultralytics not installed", (20, 40),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-            cv2.putText(img, "pip install ultralytics --no-cache-dir", (20, 80),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 200, 255), 1)
-            return img
         try:
             conf = float(params.get("confidence", 0.4))
-            model = get_yolo()
-            results = model(img, conf=conf, verbose=False)
-            return results[0].plot()
+            annotated_img, _ = run_yolo_inference(img, conf)
+            return annotated_img
         except Exception:
             return img
 
